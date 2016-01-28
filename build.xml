@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="nuxeo-custom-content-enrichers" default="deploy" basedir=".">
+<project name="nuxeo-custom-operations" default="deploy" basedir=".">
 
   <property file="build.properties"/>
 

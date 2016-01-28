@@ -24,6 +24,7 @@ import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
+import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
@@ -32,7 +33,7 @@ import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
 /**
  *
  */
-@Operation(id=LockUnLockDocument.ID, category=Constants.CAT_DOCUMENT, label="LockUnLockDocument", description="")
+@Operation(id = LockUnLockDocument.ID, category = Constants.CAT_DOCUMENT, label = "LockUnLockDocument", description = "")
 public class LockUnLockDocument {
 
     public static final String ID = "LockUnLockDocument";
@@ -45,17 +46,22 @@ public class LockUnLockDocument {
     @Context
     protected OperationContext ctx;
 
-    @OperationMethod(collector=DocumentModelCollector.class)
-    public DocumentModel run(DocumentModel input) {
+    @OperationMethod(collector = DocumentModelCollector.class)
+    public DocumentModel run(DocumentModel input) throws ClientException {
         final String id = input.getId();
         new UnrestrictedSessionRunner(opSession) {
             @Override
             public void run() {
-                DocumentModel doc = session.getDocument(new IdRef(id));
-                if (!doc.isLocked()) {
-                    doc.setLock();
-                } else {
-                    doc.removeLock();
+                DocumentModel doc;
+                try {
+                    doc = session.getDocument(new IdRef(id));
+                    if (!doc.isLocked()) {
+                        doc.setLock();
+                    } else {
+                        doc.removeLock();
+                    }
+                } catch (ClientException e) {
+                    LOGGER.error(e, e);
                 }
             }
         }.runUnrestricted();
