@@ -9,7 +9,7 @@
   </parent>
   <groupId>org.nuxeo.ecm</groupId>
   <artifactId>nuxeo-custom-operations</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>nuxeo-custom-operations</name>
   <description/>
   <dependencies>
