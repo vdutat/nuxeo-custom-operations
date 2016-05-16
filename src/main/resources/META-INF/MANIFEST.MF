@@ -7,7 +7,8 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ManifestVersion: 2
 Bundle-Vendor: Nuxeo
-Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLo
- ckDocument.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.UpdateCur
- rentUserProfile.xml
+Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLockDocument.xml,
+ OSGI-INF/extensions/org.nuxeo.ecm.automation.UpdateCurrentUserProfile.xml,
+ OSGI-INF/extensions/org.nuxeo.ecm.automation.AddCommentOperation.xml,
+ OSGI-INF/extensions/org.nuxeo.ecm.automation.ResetContentView.xml
 
