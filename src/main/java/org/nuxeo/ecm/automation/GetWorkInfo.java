@@ -33,7 +33,7 @@ import org.nuxeo.ecm.core.work.api.Work;
 @Operation(id=GetWorkInfo.ID, category=Constants.CAT_SERVICES, label="GetWorkInfo", description="")
 public class GetWorkInfo {
 
-    public static final String ID = "GetWorkInfo";
+    public static final String ID = "Services.GetWorkInfo";
 
     private static final Log LOGGER = LogFactory.getLog(GetWorkInfo.class);
 
