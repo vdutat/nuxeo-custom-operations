@@ -13,5 +13,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLo
  ommentOperation.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.Rese
  tContentView.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.GetWork
  Status.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.GetWorkInfo.x
- ml
+ ml,OSGI-INF/extensions/org.nuxeo.ecm.automation.FollowUnfollowDocumen
+ t.xml
 
