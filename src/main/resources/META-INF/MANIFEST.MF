@@ -15,5 +15,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLo
  Status.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.GetWorkInfo.x
  ml,OSGI-INF/extensions/org.nuxeo.ecm.automation.FollowUnfollowDocumen
  t.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.DetachTemplateFrom
- AllDocuments.xml
+ AllDocuments.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.MoveDoc
+ umentIfNotExistsInTarget.xml
 
