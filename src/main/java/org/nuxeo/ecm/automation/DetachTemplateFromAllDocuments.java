@@ -20,6 +20,10 @@
 
 package org.nuxeo.ecm.automation;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuxeo.ecm.automation.core.Constants;
@@ -30,8 +34,11 @@ import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.template.api.TemplateProcessorService;
+import org.nuxeo.template.api.adapters.TemplateSourceDocument;
 
 /**
  * https://jira.nuxeo.com/browse/SUPNXP-17687
@@ -54,22 +61,17 @@ public class DetachTemplateFromAllDocuments {
     @OperationMethod(collector=DocumentModelCollector.class)
     public DocumentModel run(DocumentModel input) {
         // input needs to be a Document Template:
-        String docId = input.getId();
-
-        String templateName = (String) input.getPropertyValue("dc:title");
-
         String docsWithTemplateQuery = "SELECT * FROM Document WHERE ecm:mixinType = 'TemplateBased' AND ecm:currentLifeCycleState != 'deleted' "
-                                        + "AND nxts:bindings/*/templateId='" + docId + "'";
-
+                                        + "AND nxts:bindings/*/templateId IN %s";
         //query the repository
-        DocumentModelList docsWithTemplateList = session.query(docsWithTemplateQuery);
-
+        List<String> versionIds = getTemplateAndVersionsUUIDs(input);
+		String query = NXQLQueryBuilder.replaceStringList(docsWithTemplateQuery, versionIds, true, false, "%s");
+        log.warn("<DetachTemplateFromAllDocuments> " + query);
+		DocumentModelList docsWithTemplateList = session.query(query);
         // number of docs to detach
         int nrDocsDetached = 0;
-
         for(DocumentModel doc: docsWithTemplateList) {
             TemplateProcessorService tps = Framework.getLocalService(TemplateProcessorService.class);
-
             if (tps != null) {
                 try {
                     if (doc.isVersion()) {
@@ -79,10 +81,14 @@ public class DetachTemplateFromAllDocuments {
                         log.error("doc name : " + doc.getPropertyValue("dc:title").toString() +  " and my version is: -- " + doc.getVersionLabel().toString());
                     }
                     // detach the template for the current document
-                    DocumentModel detachedDocument = tps.detachTemplateBasedDocument(doc, templateName, true);
-                    nrDocsDetached = nrDocsDetached + 1;
-
-                    log.error("_____ The document detached is: " + detachedDocument.getPropertyValue("dc:title").toString());
+                    List<String> versionTitles = versionIds.stream().map(IdRef::new).map(ref -> session.getDocument(ref)).map(dm -> dm.getAdapter(TemplateSourceDocument.class).getName())
+                    		//.distinct()
+                    		.collect(Collectors.toList());
+                    for (String templateName : versionTitles) {
+                    	DocumentModel detachedDocument = tps.detachTemplateBasedDocument(doc, templateName, true);
+                    	nrDocsDetached++;
+                    	log.error("_____ The document detached is: " + detachedDocument.getPropertyValue("dc:title").toString() + "---" + templateName);
+                    }
                 } catch (Exception e) {
                     log.error("The template could not be detached from the document: ", e);
                     log.error(doc);
@@ -92,7 +98,18 @@ public class DetachTemplateFromAllDocuments {
         // adding the number of documents detached to the context
         ctx.put("nrDocsDetached", nrDocsDetached);
         return input;
+    }
 
+    protected List<String> getTemplateAndVersionsUUIDs(DocumentModel templateDoc) {
+        TemplateSourceDocument template = templateDoc.getAdapter(TemplateSourceDocument.class);
+        List<String> uuids = new ArrayList<String>();
+        if (template != null) {
+            uuids.add(templateDoc.getId());
+            for (DocumentModel version : session.getVersions(templateDoc.getRef())) {
+            	uuids.add(version.getId());
+            }
+        }
+        return uuids;
     }
 
 }
