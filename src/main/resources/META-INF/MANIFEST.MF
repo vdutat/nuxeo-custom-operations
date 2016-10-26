@@ -17,5 +17,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLo
  t.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.DetachTemplateFrom
  AllDocuments.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.MoveDoc
  umentIfNotExistsInTarget.xml,OSGI-INF/extensions/org.nuxeo.ecm.automa
- tion.AssociateRenderingTemplate.xml
+ tion.AssociateRenderingTemplate.xml,OSGI-INF/extensions/org.nuxeo.ecm
+ .automation.RemoveFacet.xml
 
