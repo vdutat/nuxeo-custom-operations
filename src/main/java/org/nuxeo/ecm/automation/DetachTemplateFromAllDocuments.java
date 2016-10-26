@@ -20,9 +20,14 @@
 
 package org.nuxeo.ecm.automation;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,26 +35,30 @@ import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
+import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.collectors.DocumentModelCollector;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.nuxeo.template.api.TemplateProcessorService;
 import org.nuxeo.template.api.adapters.TemplateSourceDocument;
+import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
+import static org.nuxeo.ecm.core.query.sql.NXQL.NXQL;
 
 /**
  * https://jira.nuxeo.com/browse/SUPNXP-17687
  *
  * @author vdutat
  */
-@Operation(id=DetachTemplateFromAllDocuments.ID, category=Constants.CAT_SERVICES, label="DetachTemplateFromAllDocuments", description="Detach the current Template from all the documents."
-        + " Return the number of documents in a context variable named: nrDocsDetached")
+@Operation(id=DetachTemplateFromAllDocuments.ID, category=Constants.CAT_SERVICES, label="DetachTemplateFromAllDocuments", description="Detach the current Template from all the documents. Return the number of documents in a context variable named: nrDocsDetached")
 public class DetachTemplateFromAllDocuments {
 
     public static final String ID = "DetachTemplateFromAllDocuments";
+    private static final int BATCH_SIZE = 50;
     private Log log = LogFactory.getLog(DetachTemplateFromAllDocuments.class);
 
     @Context
@@ -58,27 +67,36 @@ public class DetachTemplateFromAllDocuments {
     @Context
     protected OperationContext ctx;
 
+    @Param(name = "batchSize", required = false)
+    protected Integer batchSize = BATCH_SIZE;
+
     @OperationMethod(collector=DocumentModelCollector.class)
     public DocumentModel run(DocumentModel input) {
         // input needs to be a Document Template:
-        String docsWithTemplateQuery = "SELECT * FROM Document WHERE ecm:mixinType = 'TemplateBased' AND ecm:currentLifeCycleState != 'deleted' "
-                                        + "AND nxts:bindings/*/templateId IN %s";
+        String docsWithTemplateQuery =
+//                "SELECT *"
+                "SELECT ecm:uuid"
+                + " FROM Document WHERE ecm:mixinType = 'TemplateBased' AND ecm:currentLifeCycleState != 'deleted' AND nxts:bindings/*/templateId IN %s";
         //query the repository
         List<String> versionIds = getTemplateAndVersionsUUIDs(input);
 		String query = NXQLQueryBuilder.replaceStringList(docsWithTemplateQuery, versionIds, true, false, "%s");
         log.warn("<DetachTemplateFromAllDocuments> " + query);
-		DocumentModelList docsWithTemplateList = session.query(query);
+//		DocumentModelList docsWithTemplateList = session.query(query);
+		List<String> docsWithTemplateList = getDocumentsWithTemplate(session, query);
         // number of docs to detach
+        log.warn("<DetachTemplateFromAllDocuments> " + docsWithTemplateList.size() + " documents found");
         int nrDocsDetached = 0;
-        for(DocumentModel doc: docsWithTemplateList) {
-            TemplateProcessorService tps = Framework.getLocalService(TemplateProcessorService.class);
-            if (tps != null) {
+        TemplateProcessorService tps = Framework.getLocalService(TemplateProcessorService.class);
+        if (tps != null) {
+//            for(DocumentModel doc: docsWithTemplateList) {
+            for(String id: docsWithTemplateList) {
+                DocumentModel doc = session.getDocument(new IdRef(id));
                 try {
                     if (doc.isVersion()) {
                       //allow modify document version:
                         doc.putContextData(CoreSession.ALLOW_VERSION_WRITE, Boolean.TRUE);
 
-                        log.error("doc name : " + doc.getPropertyValue("dc:title").toString() +  " and my version is: -- " + doc.getVersionLabel().toString());
+                        log.error("doc name : " + doc.getPropertyValue("dc:title").toString() + " (" + doc.getId() +  ") and my version is: -- " + doc.getVersionLabel().toString());
                     }
                     // detach the template for the current document
                     List<String> versionTitles = versionIds.stream().map(IdRef::new).map(ref -> session.getDocument(ref)).map(dm -> dm.getAdapter(TemplateSourceDocument.class).getName())
@@ -87,12 +105,22 @@ public class DetachTemplateFromAllDocuments {
                     for (String templateName : versionTitles) {
                     	DocumentModel detachedDocument = tps.detachTemplateBasedDocument(doc, templateName, true);
                     	nrDocsDetached++;
-                    	log.error("_____ The document detached is: " + detachedDocument.getPropertyValue("dc:title").toString() + "---" + templateName);
+                    	log.error(nrDocsDetached + "_____ The document detached is: " + detachedDocument.getPropertyValue("dc:title").toString() + " (" + doc.getId() + ")---" + templateName);
                     }
                 } catch (Exception e) {
                     log.error("The template could not be detached from the document: ", e);
                     log.error(doc);
                 }
+                // commit transaction
+                if (batchSize != 0 && nrDocsDetached % batchSize == 0) {
+                    log.warn("Committing transaction ...");
+                    session.save();
+                    if (TransactionHelper.isTransactionActive()) {
+                        TransactionHelper.commitOrRollbackTransaction();
+                        TransactionHelper.startTransaction();
+                    }
+                }
+
             }
         }
         // adding the number of documents detached to the context
@@ -110,6 +138,21 @@ public class DetachTemplateFromAllDocuments {
             }
         }
         return uuids;
+    }
+
+    protected List<String> getDocumentsWithTemplate(CoreSession session, String query) {
+        List<String> ids = new ArrayList<String>();
+        IterableQueryResult it = null;
+        try {
+            it = session.queryAndFetch(query, NXQL);
+            Spliterator<Map<String, Serializable>> spliterator = Spliterators.spliteratorUnknownSize(it.iterator(), Spliterator.NONNULL);
+            ids = StreamSupport.stream(spliterator, false).map(map -> (String) map.get(ECM_UUID)).collect(Collectors.toList());
+        } finally {
+            if (it != null) {
+                it.close();
+            }
+        }
+        return ids;
     }
 
 }
