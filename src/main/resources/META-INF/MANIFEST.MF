@@ -18,5 +18,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLo
  AllDocuments.xml,OSGI-INF/extensions/org.nuxeo.ecm.automation.MoveDoc
  umentIfNotExistsInTarget.xml,OSGI-INF/extensions/org.nuxeo.ecm.automa
  tion.AssociateRenderingTemplate.xml,OSGI-INF/extensions/org.nuxeo.ecm
- .automation.RemoveFacet.xml
+ .automation.RemoveFacet.xml,OSGI-INF/extensions/org.nuxeo.ecm.automat
+ ion.UserHasPermission.xml
 
