@@ -20,8 +20,14 @@
 
 package org.nuxeo.ecm.automation;
 
+import java.io.IOException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
@@ -37,13 +43,23 @@ import org.nuxeo.ecm.platform.usermanager.UserManager;
 
 /**
  * https://jira.nuxeo.com/browse/SUPNXP-18288
+ *
  * @author vdutat
  */
 @Operation(id=UserHasPermission.ID, category=Constants.CAT_DOCUMENT, label="User Has Permission", description="")
 public class UserHasPermission {
 
-    public static final String ID = "UserHasPermission";
-    private Log log = LogFactory.getLog(UserHasPermission.class);
+    protected class JsonObj {
+
+        @JsonProperty("entity-type") public String entityType;
+        public String id;
+        public String path;
+        public String permission;
+        public String username;
+        public boolean hasPermission;
+    }
+
+    public static final String ID = "Document.UserHasPermission";
 
     @Context
     protected CoreSession session;
@@ -60,8 +76,10 @@ public class UserHasPermission {
     @Param(name = "permission", required=true)
     protected String permission;
 
+    private Log log = LogFactory.getLog(UserHasPermission.class);
+
     @OperationMethod
-    public Blob run(DocumentModel input) {
+    public Blob run(DocumentModel input) throws JsonGenerationException, JsonMappingException, IOException {
         new UnrestrictedSessionRunner(session) {
             @Override
             public void run() {
@@ -70,8 +88,33 @@ public class UserHasPermission {
                 ctx.put("userHasPermission", hasPerm);
             }
         }.runUnrestricted();
-        log.warn("userHasPermission:" + ctx.get("userHasPermission"));
-        return Blobs.createBlob(Boolean.toString((boolean) ctx.get("userHasPermission")));
+        if (log.isDebugEnabled()) {
+            log.debug("userHasPermission:" + ctx.get("userHasPermission"));
+        }
+        /*
+        JSONObject obj = new JSONObject();
+        obj.element("entity-type", this.getClass().getSimpleName());
+        obj.element("id", input.getId());
+        obj.element("path", input.getPathAsString());
+        obj.element("username", username);
+        obj.element("permission", permission);
+        obj.element("hasPermission", (boolean) ctx.get("userHasPermission"));
+        */
+        JsonObj obj = new JsonObj();
+        obj.entityType = this.getClass().getSimpleName();
+        obj.id = input.getId();
+        obj.path = input.getPathAsString();
+        obj.username = username;
+        obj.permission = permission;
+        obj.hasPermission = (boolean) ctx.get("userHasPermission");
+        /*
+        return Blobs.createBlob(obj.toString()
+//                , "application/json"
+                );
+                */
+        return Blobs.createBlob(new ObjectMapper().writeValueAsString(obj)
+//              , "application/json"
+              );
     }
 
 }
