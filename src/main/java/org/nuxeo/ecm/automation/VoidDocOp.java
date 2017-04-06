@@ -54,7 +54,6 @@ public class VoidDocOp {
         log.warn("document title of document in repository: " + session.getDocument(input.getRef()).getPropertyValue("dc:title"));
         log.warn("title of document being modified: " + input.getPropertyValue("dc:title"));
         DocumentModel prev = (DocumentModel) ((Event) ctx.get("Event")).getContext().getProperty(CoreEventConstants.PREVIOUS_DOCUMENT_MODEL);
-        log.warn("previous DocumentModel: " + prev);
         log.warn("previous document model's title: " + prev.getPropertyValue("dc:title"));
         return input;
     }
