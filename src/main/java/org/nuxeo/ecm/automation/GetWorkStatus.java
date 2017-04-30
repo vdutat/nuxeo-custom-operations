@@ -48,9 +48,12 @@ public class GetWorkStatus {
 
     @OperationMethod
     public Object run() {
+    	// TODO
         State state = wm.getWorkState(workId);
-        String result = wm.findResult(workId);
-        return state.toString() + "-" + result;
+//        String result = wm.findResult(workId);
+        return state.toString()
+        		//+ "-" + result
+        		;
     }
 
 }
