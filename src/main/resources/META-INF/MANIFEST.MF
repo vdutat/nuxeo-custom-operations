@@ -8,7 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ManifestVersion: 2
 Bundle-Vendor: Nuxeo
 Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLockDocument.xml,
- OSGI-INF/extensions/org.nuxeo.ecm.automation.UpdateCurrentUserProfile.xml,
+ OSGI-INF/extensions/org.nuxeo.ecm.automation.UpdateCurrentUserProfile.xml,
  OSGI-INF/extensions/org.nuxeo.ecm.automation.AddCommentOperation.xml,
  OSGI-INF/extensions/org.nuxeo.ecm.automation.ResetContentView.xml,
  OSGI-INF/extensions/org.nuxeo.ecm.automation.GetWorkStatus.xml,
@@ -20,4 +20,5 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLockDocument
  OSGI-INF/extensions/org.nuxeo.ecm.automation.RemoveFacet.xml,
  OSGI-INF/extensions/org.nuxeo.ecm.automation.UserHasPermission.xml,
  OSGI-INF/void-doc-op-operation-contrib.xml,
- OSGI-INF/getservice-operation-contrib.xml
+ OSGI-INF/getservice-operation-contrib.xml,
+ OSGI-INF/nullpointerexception-operation-contrib.xml
