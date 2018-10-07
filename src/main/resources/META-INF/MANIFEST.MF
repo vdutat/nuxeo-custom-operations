@@ -21,4 +21,5 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLockDocument
  OSGI-INF/extensions/org.nuxeo.ecm.automation.UserHasPermission.xml,
  OSGI-INF/void-doc-op-operation-contrib.xml,
  OSGI-INF/getservice-operation-contrib.xml,
- OSGI-INF/nullpointerexception-operation-contrib.xml
+ OSGI-INF/nullpointerexception-operation-contrib.xml,
+ OSGI-INF/createnewdocumentcopycontent-operation-contrib.xml
