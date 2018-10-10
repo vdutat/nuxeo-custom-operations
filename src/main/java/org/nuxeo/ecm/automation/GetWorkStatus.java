@@ -24,6 +24,7 @@ import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
+import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.Work.State;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 
@@ -48,9 +49,8 @@ public class GetWorkStatus {
 
     @OperationMethod
     public Object run() {
-        State state = wm.getWorkState(workId);
-        String result = wm.findResult(workId);
-        return state.toString() + "-" + result;
+        Work work = wm.find(workId, null);
+        return work.getStatus();
     }
 
 }
