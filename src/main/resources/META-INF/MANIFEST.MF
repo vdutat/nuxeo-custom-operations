@@ -21,5 +21,6 @@ Nuxeo-Component: OSGI-INF/extensions/org.nuxeo.ecm.automation.LockUnLockDocument
  OSGI-INF/extensions/org.nuxeo.ecm.automation.UserHasPermission.xml,
  OSGI-INF/void-doc-op-operation-contrib.xml,
  OSGI-INF/exportelasticsearchaudit-operation-contrib.xml,
- OSGI-INF/batchremovefolderdocuments-operation-contrib.xml
+ OSGI-INF/batchremovefolderdocuments-operation-contrib.xml,
+ OSGI-INF/getfilename-operation-contrib.xml
  
