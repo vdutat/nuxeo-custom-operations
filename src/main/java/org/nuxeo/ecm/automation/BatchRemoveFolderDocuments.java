@@ -62,6 +62,7 @@ public class BatchRemoveFolderDocuments {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Processing next batch of %d documents, first document ID is %s", refs.size(), refs.get(0).toString()));
             }
+            log.warn("Documents to remove: " + refs);
             session.removeDocuments((DocumentRef[]) refs.toArray(new DocumentRef[0]));
             session.save();
             TransactionHelper.commitOrRollbackTransaction();
